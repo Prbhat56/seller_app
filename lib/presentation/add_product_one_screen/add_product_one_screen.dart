@@ -84,10 +84,17 @@ class _AddProductOneScreenState extends State<AddProductOneScreen> {
     print('Failed to load');
     }
   }
-  Future<void> updateDish() async {
- 
-  final accessToken = 'access_token'; 
-  final dishId = 'your_dish_id'; 
+Future<void> updateDish() async {
+  // Fetch the access token from shared preferences
+  final accessToken = await getAccessToken();
+  if (accessToken == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Access token not found')),
+    );
+    return;
+  }
+
+  final dishId = 'your_dish_id'; // Replace with actual dish ID
 
   final url = Uri.parse('https://3a9p2qy68m.ap-south-1.awsapprunner.com/seller/catalouge/updateDish');
   final response = await http.post(url, headers: {
@@ -108,23 +115,21 @@ class _AddProductOneScreenState extends State<AddProductOneScreen> {
   if (response.statusCode == 200) {
     final responseData = json.decode(response.body);
     if (responseData['status'] == true) {
-  
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Product loaded successfully')),
       );
     } else {
- 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load product')),
       );
     }
   } else {
- 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Server error: ${response.statusCode}')),
     );
   }
 }
+
 
 
 
