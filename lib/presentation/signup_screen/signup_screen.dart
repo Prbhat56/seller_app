@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:seller_app/core/app_export.dart';
+import 'package:seller_app/models/user_model.dart';
 import 'package:seller_app/widgets/app_bar/appbar_leading_image.dart';
 
 import 'package:seller_app/widgets/app_bar/appbar_trailing_image.dart';
@@ -22,6 +24,9 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   TextEditingController userNameController = TextEditingController();
+    TextEditingController lastNameController = TextEditingController();
+      TextEditingController kNameController = TextEditingController();
+        TextEditingController kaddressController = TextEditingController();
 
   TextEditingController emailController = TextEditingController();
 
@@ -36,31 +41,77 @@ class _SignupScreenState extends State<SignupScreen> {
   TextEditingController pincodeController = TextEditingController();
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  Future<void> registerUser() async {
-  var url = Uri.parse('https://3a9p2qy68m.ap-south-1.awsapprunner.com/seller/signup');
-  var response = await http.post(
-    url,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: json.encode({
-      'first_name': userNameController.text, 
-      'last_name': '', 
-      'email': emailController.text,
-      'kitchen_name': '', 
-      'kitchen_address': addressController.text,
-      'password': passwordController.text,
-      'number': mobileNoController.text,
-      'loc': '', 
-      'pincode': pincodeController.text,
-    }),
-  );
+    Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Location permissions are permanently denied');
+    } 
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+ void onSignUpPressed() async {
+    if (_formKey.currentState!.validate()) {
+      Position position = await _determinePosition();
+
+      UserModel newUser = UserModel(
+        firstName: userNameController.text,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        kitchenName: kNameController.text,
+        kitchenAddress: kaddressController.text,
+        password: passwordController.text,
+        mobileNumber: mobileNoController.text,
+       
+        pincode: pincodeController.text,
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      await registerUser(newUser);
+    }
+  }
+
+
+  Future<void> registerUser(UserModel user) async {
+    var url = Uri.parse('https://3a9p2qy68m.ap-south-1.awsapprunner.com/seller/signup');
+
+    var userJson = user.toJson();
+    userJson['location'] = {
+      'latitude': user.latitude,
+      'longitude': user.longitude
+    };
+
+    var response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(userJson),
+    );
 
   if (response.statusCode == 200) {
     var data = json.decode(response.body);
     if (data['message'] == true) {
-      // Handle successful response
-      print('User registered successfully');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User registered successfully')),
+        );
+        Navigator.pushNamed(context, AppRoutes.loginScreen);
       
     } else {
      
@@ -79,7 +130,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
     }
   } else {
-    // Handle error response
+  
     print('Failed to register user: ${response.body}');
     showDialog(
       context: context,
@@ -134,12 +185,21 @@ class _SignupScreenState extends State<SignupScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "User Name",
+                          "First Name",
                           style: theme.textTheme.bodyMedium,
                         ),
                         SizedBox(height: 4.v),
                         _buildUserName(context),
+                         SizedBox(height: 9.v),
+                            Text(
+                          "Last Name",
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        SizedBox(height: 4.v),
+                        _buildLastUserName(context),
+
                         SizedBox(height: 9.v),
+
                         Text(
                           "Email",
                           style: theme.textTheme.bodyMedium,
@@ -161,6 +221,21 @@ class _SignupScreenState extends State<SignupScreen> {
                         SizedBox(height: 5.v),
                         _buildConfirmPassword(context),
                         SizedBox(height: 9.v),
+                            Text(
+                          "Kitchen Name",
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        SizedBox(height: 5.v),
+                        _buildKitchenName(context),
+                         SizedBox(height: 9.v),
+                               Text(
+                          "Kitchen Address",
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        SizedBox(height: 5.v),
+                        _buildKitchenAddress(context),
+
+                          SizedBox(height: 9.v),
                         Text(
                           "Mobile",
                           style: theme.textTheme.bodyMedium,
@@ -259,7 +334,25 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildUserName(BuildContext context) {
     return CustomTextFormField(
       controller: userNameController,
-      hintText: "Name",
+      hintText: " First Name",
+    );
+  }
+    Widget _buildLastUserName(BuildContext context) {
+    return CustomTextFormField(
+      controller: lastNameController,
+      hintText: " Last Name",
+    );
+  }
+      Widget _buildKitchenName(BuildContext context) {
+    return CustomTextFormField(
+      controller: kNameController,
+      hintText: "Kitchen Name",
+    );
+  }
+      Widget _buildKitchenAddress(BuildContext context) {
+    return CustomTextFormField(
+      controller: kaddressController,
+      hintText: "Kitchen Address",
     );
   }
 
@@ -338,17 +431,19 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// Section Widget
-  Widget _buildSignUpButton(BuildContext context) {
-    return CustomElevatedButton(
-      onPressed: (){
-  Navigator.pushNamed(
+
+Widget _buildSignUpButton(BuildContext context) {
+  return CustomElevatedButton(
+    // onPressed: onSignUpPressed, 
+    onPressed: 
+    (){
+         Navigator.pushNamed(
                                           context, AppRoutes.homeScreen);
-      },
-      text: "SIGN UP",
-      margin: EdgeInsets.symmetric(horizontal: 36.h),
-      buttonStyle: CustomButtonStyles.outlineIndigo,
-      alignment: Alignment.center,
-    );
-  }
+    },
+    text: "SIGN UP",
+    margin: EdgeInsets.symmetric(horizontal: 36.h),
+    buttonStyle: CustomButtonStyles.outlineIndigo,
+    alignment: Alignment.center,
+  );
+}
 }

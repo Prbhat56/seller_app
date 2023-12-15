@@ -3,7 +3,7 @@ import 'package:seller_app/core/app_export.dart';
 
 // ignore: must_be_immutable
 class UserprofiledetailsItemWidget extends StatelessWidget {
-  const UserprofiledetailsItemWidget({Key? key})
+  const    UserprofiledetailsItemWidget({Key? key})
       : super(
           key: key,
         );

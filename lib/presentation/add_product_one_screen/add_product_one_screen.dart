@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:seller_app/core/app_export.dart';
+import 'package:seller_app/models/product_model.dart';
 import 'package:seller_app/widgets/app_bar/appbar_leading_image.dart';
 import 'package:seller_app/widgets/app_bar/appbar_subtitle_three.dart';
 import 'package:seller_app/widgets/app_bar/custom_app_bar.dart';
@@ -84,33 +85,38 @@ class _AddProductOneScreenState extends State<AddProductOneScreen> {
     print('Failed to load');
     }
   }
-Future<void> updateDish() async {
-  // Fetch the access token from shared preferences
-  final accessToken = await getAccessToken();
-  if (accessToken == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Access token not found')),
-    );
-    return;
+  void onSubmitPressed() async {
+    if (_formKey.currentState!.validate()) {
+      final accessToken = await getAccessToken();
+      if (accessToken == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Access token not found')),
+        );
+        return;
+      }
+
+      ProductModel newProduct = ProductModel(
+        productName: nameController.text,
+        productDescription: foodDescriptionController.text,
+        sellingPrice: double.tryParse(priceController.text) ?? 0.0,
+        basePrice: double.tryParse(offerPriceEditTextController.text) ?? 0.0,
+        stockQuantity: int.tryParse(stockQuantityValueEditTextController.text) ?? 0,
+        startTime: timeEditTextController.text,
+        endTime: newtimeEditTextController.text,
+        productImageUrl: imageUrl, 
+      );
+
+      await updateDish(newProduct, accessToken);
+    }
   }
 
-  final dishId = 'your_dish_id'; // Replace with actual dish ID
 
-  final url = Uri.parse('https://3a9p2qy68m.ap-south-1.awsapprunner.com/seller/catalouge/updateDish');
-  final response = await http.post(url, headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer $accessToken',
-  }, body: jsonEncode({
-    'dishId': dishId,
-    'dish_name': nameController.text,
-    'dish_image_link': imageUrl, 
-    'selling_price': double.tryParse(priceController.text) ?? 0.0,
-    'base_price': double.tryParse(offerPriceEditTextController.text) ?? 0.0,
-    'active': true, 
-    'description': foodDescriptionController.text,
-    'start_time': timeEditTextController.text, 
-    'end_time': newtimeEditTextController.text, 
-  }));
+  Future<void> updateDish(ProductModel product, String accessToken) async {
+    final url = Uri.parse('https://3a9p2qy68m.ap-south-1.awsapprunner.com/seller/catalouge/updateDish');
+    final response = await http.post(url, headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    }, body: jsonEncode(product.toJson()));
 
   if (response.statusCode == 200) {
     final responseData = json.decode(response.body);
@@ -404,6 +410,7 @@ Widget _buildEightySeven(BuildContext context) {
   Widget _buildSubmitButton(BuildContext context) {
     return CustomElevatedButton(
       text: "Submit",
+       onPressed: onSubmitPressed,
       margin: EdgeInsets.only(
         left: 20.h,
         right: 20.h,
