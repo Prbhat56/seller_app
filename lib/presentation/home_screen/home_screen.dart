@@ -89,7 +89,6 @@ class HomeScreen extends StatelessWidget {
             buttonTextStyle: theme.textTheme.labelLarge!));
   }
 
-  /// Section Widget
   Widget _buildMyProducts(BuildContext context) {
     return Expanded(
         child: CustomElevatedButton(
@@ -109,14 +108,13 @@ class HomeScreen extends StatelessWidget {
             buttonTextStyle: theme.textTheme.labelLarge!));
   }
 
-  /// Section Widget
+
   Widget _buildAddProduct1(BuildContext context) {
     return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [_buildAddProduct(context), _buildMyProducts(context)]);
   }
 
-  /// Section Widget
   Widget _buildMyOrders(BuildContext context) {
     return Expanded(
         child: CustomElevatedButton(
@@ -136,7 +134,6 @@ class HomeScreen extends StatelessWidget {
             buttonTextStyle: theme.textTheme.labelLarge!));
   }
 
-  /// Section Widget
   Widget _buildOrderHistory(BuildContext context) {
     return Expanded(
         child: CustomElevatedButton(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:seller_app/constant/api.dart';
 import 'package:seller_app/core/app_export.dart';
 import 'package:seller_app/widgets/app_bar/appbar_leading_image.dart';
 
@@ -28,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     Future<void> login() async {
-    var url = Uri.parse('https://3a9p2qy68m.ap-south-1.awsapprunner.com/seller/login');
+    var url = Uri.parse('${ApiConstants.baseUrl}/seller/login');
     var response = await http.get(url, headers: {
       'user_email': emailController.text,
       'user_password': passwordController.text,

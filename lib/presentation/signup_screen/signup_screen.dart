@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:seller_app/core/app_export.dart';
@@ -41,14 +42,47 @@ class _SignupScreenState extends State<SignupScreen> {
   TextEditingController pincodeController = TextEditingController();
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  Future<void> promptEnableLocationService() async {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Location Services Disabled"),
+        content: Text("Please enable location services in settings."),
+        actions: <Widget>[
+          TextButton(
+            child: Text("Open Settings"),
+            onPressed: () {
+             AppSettings.openAppSettings(type: AppSettingsType.location);
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text("Cancel"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
     Future<Position> _determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
+   if (!serviceEnabled) {
+
+    await promptEnableLocationService();
+  
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       return Future.error('Location services are disabled.');
     }
+  }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -309,7 +343,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// Section Widget
+
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return CustomAppBar(
       height: 53.v,
@@ -330,7 +364,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// Section Widget
+
   Widget _buildUserName(BuildContext context) {
     return CustomTextFormField(
       controller: userNameController,
@@ -356,7 +390,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// Section Widget
+
   Widget _buildEmail(BuildContext context) {
     return CustomTextFormField(
       controller: emailController,
@@ -365,7 +399,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// Section Widget
+
   Widget _buildPassword(BuildContext context) {
     return CustomTextFormField(
       controller: passwordController,
@@ -384,7 +418,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// Section Widget
+ 
   Widget _buildConfirmPassword(BuildContext context) {
     return CustomTextFormField(
       controller: confirmPasswordController,
@@ -434,12 +468,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
 Widget _buildSignUpButton(BuildContext context) {
   return CustomElevatedButton(
-    // onPressed: onSignUpPressed, 
-    onPressed: 
-    (){
-         Navigator.pushNamed(
-                                          context, AppRoutes.homeScreen);
-    },
+    onPressed: onSignUpPressed, 
+    // onPressed: 
+    // // (){
+    // //      Navigator.pushNamed(
+    // //                                       context, AppRoutes.homeScreen);
+    // // },
     text: "SIGN UP",
     margin: EdgeInsets.symmetric(horizontal: 36.h),
     buttonStyle: CustomButtonStyles.outlineIndigo,

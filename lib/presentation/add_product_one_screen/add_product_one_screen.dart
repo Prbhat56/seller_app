@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:seller_app/constant/api.dart';
 import 'package:seller_app/core/app_export.dart';
 import 'package:seller_app/models/product_model.dart';
 import 'package:seller_app/widgets/app_bar/appbar_leading_image.dart';
@@ -70,7 +71,7 @@ class _AddProductOneScreenState extends State<AddProductOneScreen> {
   }
 
   Future<void> uploadImage(File imageFile) async {
-    var uri = Uri.parse('https://3a9p2qy68m.ap-south-1.awsapprunner.com/seller/catalouge/uploadImage');
+    var uri = Uri.parse('${ApiConstants.baseUrl}/seller/catalouge/uploadImage');
     var request = http.MultipartRequest('POST', uri)
       ..files.add(await http.MultipartFile.fromPath('dish_image', imageFile.path));
 
@@ -112,7 +113,7 @@ class _AddProductOneScreenState extends State<AddProductOneScreen> {
 
 
   Future<void> updateDish(ProductModel product, String accessToken) async {
-    final url = Uri.parse('https://3a9p2qy68m.ap-south-1.awsapprunner.com/seller/catalouge/updateDish');
+    final url = Uri.parse('${ApiConstants.baseUrl}/seller/catalouge/updateDish');
     final response = await http.post(url, headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
